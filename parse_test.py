@@ -1,5 +1,7 @@
 """Tests for the parse module."""
 
+import pytest
+
 from parse import QDimacs, QDimacsParseError, QuantifierBlock, parse_qdimacs
 
 
