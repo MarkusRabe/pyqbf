@@ -1,0 +1,8 @@
+c Classic QBF example from academic literature
+c Formula: ∀x.∃y. (x ∨ y) ∧ (¬x ∨ y)
+c This formula is satisfiable: for any x, we can set y=true
+p cnf 2 2
+a 1 0
+e 2 0
+1 2 0
+-1 2 0

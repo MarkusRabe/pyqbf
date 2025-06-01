@@ -1,0 +1,7 @@
+c Classical SAT formula with multiple variables
+c Formula: (x1 ∨ x2) ∧ (¬x1 ∨ x2) ∧ (x1 ∨ ¬x2)
+c This is satisfiable by setting x1=true, x2=true
+p cnf 2 3
+1 2 0
+-1 2 0
+1 -2 0

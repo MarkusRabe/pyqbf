@@ -1,0 +1,10 @@
+c An unsatisfiable QBF formula
+c Formula: ∀x∃y.(x ∨ y) ∧ (¬x ∨ ¬y) ∧ (x ∨ ¬y) ∧ (¬x ∨ y)
+c This forces y to be both true and false for any x, making it unsatisfiable
+p cnf 2 4
+a 1 0
+e 2 0
+1 2 0
+-1 -2 0
+1 -2 0
+-1 2 0

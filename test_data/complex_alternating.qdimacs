@@ -1,0 +1,10 @@
+c Complex QBF with alternating quantifiers
+c Formula: ∀x₁∃x₂∀x₃∃x₄.(x₁ ∨ x₂ ∨ x₃) ∧ (¬x₁ ∨ ¬x₃ ∨ x₄)
+c Tests alternating quantifier pattern
+p cnf 4 2
+a 1 0
+e 2 0
+a 3 0
+e 4 0
+1 2 3 0
+-1 -3 4 0

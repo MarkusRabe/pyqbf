@@ -1,8 +1,7 @@
 """Parse utilities for QDIMACS files."""
 
-from typing import List, Literal, Tuple, Set, Dict, FrozenSet, Optional
-from dataclasses import dataclass, field
-from enum import Enum, auto
+from typing import List, Literal
+from dataclasses import dataclass
 
 class QDimacsError(Exception):
     """Base class for exceptions in this module."""
@@ -64,7 +63,7 @@ class QDimacs:
         if len(header) < 2 or header[1] != "cnf":
             raise QDimacsParseError("Only cnf format is supported")
 
-        if len(header) < 4:
+        if len(header) != 4:
             raise QDimacsParseError("Invalid header")
 
         try:
@@ -93,7 +92,14 @@ class QDimacs:
 
             if quantifier_type is not None:
                 try:
-                    quantifiers.append(QuantifierBlock([int(literal) for literal in line.split()], quantifier_type))
+                    variables = line.split()
+                    # Quantifier blocks must end with 0
+                    if not variables or variables[-1] != "0":
+                        raise QDimacsParseError("Quantifier blocks must end with 0")
+                    variables = variables[:-1]
+                    if not variables:
+                        raise QDimacsParseError("Empty quantifier block")
+                    quantifiers.append(QuantifierBlock([int(literal) for literal in variables], quantifier_type))
                 except ValueError:
                     raise QDimacsParseError("Invalid quantifier")
                 continue

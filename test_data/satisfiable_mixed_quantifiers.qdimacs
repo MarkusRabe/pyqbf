@@ -1,0 +1,7 @@
+c Another satisfiable QBF formula
+c Formula: ∃x∀y.(x ∨ y)
+c This is satisfiable: set x=true, then (x ∨ y) is true for any y
+p cnf 2 1
+e 1 0
+a 2 0
+1 2 0

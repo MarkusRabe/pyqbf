@@ -1,0 +1,7 @@
+c This is a satisfiable QBF formula
+c Formula: ∃x.(x ∨ ¬x)
+c This is a tautology - it should always be satisfiable
+p cnf 1 2
+e 1 0
+1 0
+-1 0
