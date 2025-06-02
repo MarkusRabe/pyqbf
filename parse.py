@@ -1,11 +1,20 @@
 """Parse utilities for QDIMACS files."""
 
-from typing import List, Literal
+from typing import List
 from dataclasses import dataclass
+from enum import Enum
+
+
+class QuantifierType(Enum):
+    """Enum for quantifier types in QDIMACS files."""
+    FORALL = "forall"
+    EXISTS = "exists"
+
 
 class QDimacsError(Exception):
     """Base class for exceptions in this module."""
     pass
+
 
 class QDimacsParseError(QDimacsError):
     """Exception raised for errors while parsing a QDIMACS file.
@@ -22,15 +31,15 @@ class QDimacsParseError(QDimacsError):
 class QuantifierBlock:
     """Represents a quantifier block in a QDIMACS file."""
     bound_variables: List[int]
-    quantifier_type: Literal["forall", "exists"]
+    quantifier_type: QuantifierType
 
     def is_forall(self) -> bool:
         """Return whether this is a forall quantifier block."""
-        return self.quantifier_type == "forall"
+        return self.quantifier_type == QuantifierType.FORALL
 
     def is_exists(self) -> bool:
         """Return whether this is an exists quantifier block."""
-        return self.quantifier_type == "exists"
+        return self.quantifier_type == QuantifierType.EXISTS
 
 
 @dataclass
@@ -82,10 +91,10 @@ class QDimacs:
         quantifiers = []
         for line in lines[1:]:
             if line.startswith("a"):
-                quantifier_type = "forall"
+                quantifier_type = QuantifierType.FORALL
                 line = line[1:]
             elif line.startswith("e"):
-                quantifier_type = "exists"
+                quantifier_type = QuantifierType.EXISTS
                 line = line[1:]
             else:
                 quantifier_type = None

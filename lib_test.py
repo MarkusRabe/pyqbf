@@ -1,6 +1,6 @@
 """Tests for the lib module."""
 
-from parse import QDimacs, QuantifierBlock
+import parse
 import lib
 
 
@@ -16,7 +16,7 @@ def test_solve_file():
 def test_solve():
     """Test that solve correctly solves a QBF."""
     # Create a simple QDimacs instance
-    puzzle = QDimacs(1, [[1]], [])
+    puzzle = parse.QDimacs(1, [[1]], [])
     result = lib.solve(puzzle)
     assert isinstance(result, str)
     assert result == "UNSAT"  # Based on our placeholder implementation
@@ -26,10 +26,10 @@ def test_solve_with_quantifiers():
     """Test that solve correctly handles quantifiers."""
     # Create a QDimacs instance with quantifiers
     quantifiers = [
-        QuantifierBlock([1], "exists"),
-        QuantifierBlock([2], "forall")
+        parse.QuantifierBlock([1], parse.QuantifierType.EXISTS),
+        parse.QuantifierBlock([2], parse.QuantifierType.FORALL)
     ]
-    puzzle = QDimacs(2, [[1, 2], [-1, -2]], quantifiers)
+    puzzle = parse.QDimacs(2, [[1, 2], [-1, -2]], quantifiers)
     result = lib.solve(puzzle)
     assert isinstance(result, str)
     assert result == "UNSAT"  # Based on our placeholder implementation
@@ -55,10 +55,10 @@ def test_solve_another_satisfiable_formula():
     # This formula is satisfiable: if we set x=true, then (x ∨ y) is true for any y
     # But our placeholder implementation always returns "UNSAT"
     quantifiers = [
-        QuantifierBlock([1], "exists"),
-        QuantifierBlock([2], "forall")
+        parse.QuantifierBlock([1], parse.QuantifierType.EXISTS),
+        parse.QuantifierBlock([2], parse.QuantifierType.FORALL)
     ]
-    puzzle = QDimacs(2, [[1, 2]], quantifiers)
+    puzzle = parse.QDimacs(2, [[1, 2]], quantifiers)
     result = lib.solve(puzzle)
     assert isinstance(result, str)
     # TODO: This should return "SAT" when a real solver is implemented

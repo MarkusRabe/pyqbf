@@ -2,7 +2,7 @@
 
 import os
 
-from parse import QDimacs, QuantifierBlock
+import parse
 import lib
 
 
@@ -14,11 +14,11 @@ def test_read_satisfiable_tautology_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         1,
         [[1], [-1]],
-        [QuantifierBlock([1], "exists")]
+        [parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)]
     )
     assert result == expected
 
@@ -31,13 +31,13 @@ def test_read_satisfiable_mixed_quantifiers_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         2,
         [[1, 2]],
         [
-            QuantifierBlock([1], "exists"),
-            QuantifierBlock([2], "forall")
+            parse.QuantifierBlock([1], parse.QuantifierType.EXISTS),
+            parse.QuantifierBlock([2], parse.QuantifierType.FORALL)
         ]
     )
     assert result == expected
@@ -51,13 +51,13 @@ def test_read_classic_qbf_example_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2]],
         [
-            QuantifierBlock([1], "forall"),
-            QuantifierBlock([2], "exists")
+            parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS)
         ]
     )
     assert result == expected
@@ -71,13 +71,13 @@ def test_read_unsatisfiable_example_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         2,
         [[1, 2], [-1, -2], [1, -2], [-1, 2]],
         [
-            QuantifierBlock([1], "forall"),
-            QuantifierBlock([2], "exists")
+            parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS)
         ]
     )
     assert result == expected
@@ -91,15 +91,15 @@ def test_read_complex_alternating_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         4,
         [[1, 2, 3], [-1, -3, 4]],
         [
-            QuantifierBlock([1], "forall"),
-            QuantifierBlock([2], "exists"),
-            QuantifierBlock([3], "forall"),
-            QuantifierBlock([4], "exists")
+            parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
+            parse.QuantifierBlock([3], parse.QuantifierType.FORALL),
+            parse.QuantifierBlock([4], parse.QuantifierType.EXISTS)
         ]
     )
     assert result == expected
@@ -113,13 +113,13 @@ def test_read_large_formula_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         5,
         [[1, 3], [2, 4], [-1, -2, 5], [3, -4, -5]],
         [
-            QuantifierBlock([1, 2], "forall"),
-            QuantifierBlock([3, 4, 5], "exists")
+            parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL),
+            parse.QuantifierBlock([3, 4, 5], parse.QuantifierType.EXISTS)
         ]
     )
     assert result == expected
@@ -174,8 +174,8 @@ def test_read_classical_sat_satisfiable_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         1,
         [[1]],
         []  # No quantifiers in classical SAT
@@ -191,8 +191,8 @@ def test_read_classical_sat_unsatisfiable_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         1,
         [[1], [-1]],
         []  # No quantifiers in classical SAT
@@ -208,8 +208,8 @@ def test_read_classical_sat_complex_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = QDimacs.parse(content)
-    expected = QDimacs(
+    result = parse.QDimacs.parse(content)
+    expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2], [1, -2]],
         []  # No quantifiers in classical SAT
