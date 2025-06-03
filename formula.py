@@ -1,6 +1,6 @@
 """Data structures for QBF formulas."""
 
-from typing import List, Dict, Set, Sequence, FrozenSet
+from typing import List, Dict, Set, Sequence, FrozenSet, Iterable
 from dataclasses import dataclass, field
 import itertools
 import functools
@@ -126,7 +126,7 @@ class Formula:
         self.quantifiers: List[parse.QuantifierBlock] = qdimacs.quantifiers
         if len(qdimacs.quantifiers) != 0:
             raise NotImplementedError("Only quantifier-free formulas are supported.")
-        self.variables: Dict[VariableIndex, Variable] = {}
+        self.variables_by_index: Dict[VariableIndex, Variable] = {}
         self.clauses: Set[Clause] = set()
         self.clauses_by_index: Dict[ClauseIndex, Clause] = {}
 
@@ -140,20 +140,25 @@ class Formula:
                 self.create_fresh_variable(variable, quantifier.quantifier_type)
 
         for variable_index in range(1, qdimacs.num_vars + 1):
-            if variable_index not in self.variables:
+            if variable_index not in self.variables_by_index:
                 self.create_fresh_variable(variable_index)
 
         for index, clause in enumerate(qdimacs.clauses):
             for l in clause:
                 var_index = abs(l)
-                if var_index not in self.variables:
+                if var_index not in self.variables_by_index:
                     self.create_fresh_variable(var_index)
             clause = self.create_clause_from_qdimacs(clause, index)
             self.add_clause(clause)
 
+    @property
+    def variables(self) -> Iterable[Variable]:
+        """Return the set of variables in this formula."""
+        return self.variables_by_index.values()
+
     def next_fresh_variable_index(self) -> int:
         """Return the next fresh variable index."""
-        while self._largest_used_variable_index in self.variables:
+        while self._largest_used_variable_index in self.variables_by_index:
             self._largest_used_variable_index += 1
         return self._largest_used_variable_index
 
@@ -164,9 +169,9 @@ class Formula:
     ) -> Variable:
         """Create a new variable with the given quantifier."""
         index = index or self.next_fresh_variable_index()
-        assert index not in self.variables
-        self.variables[index] = Variable(index, quantifier)
-        return self.variables[index]
+        assert index not in self.variables_by_index
+        self.variables_by_index[index] = Variable(index, quantifier)
+        return self.variables_by_index[index]
 
     def next_fresh_clause_index(self) -> int:
         """Return the next fresh clause index."""
@@ -178,7 +183,7 @@ class Formula:
         """Return the literal with the given QDIMACS index."""
         variable_index = abs(literal_index)
         is_positive = literal_index > 0
-        return self.variables[variable_index].get_literal(is_positive)
+        return self.variables_by_index[variable_index].get_literal(is_positive)
 
     def create_clause_from_qdimacs(
         self, clause: Sequence[int], index: ClauseIndex
@@ -217,7 +222,7 @@ class Formula:
             self.clauses_by_index[clause.index] = clause
             for literal in clause.literals:
                 literal.occurrences.add(clause)
-                assert literal is self.variables[literal.variable].get_literal(
+                assert literal is self.variables_by_index[literal.variable].get_literal(
                     literal.is_positive
                 )
 
@@ -227,7 +232,7 @@ class Formula:
 
     def resolve(self, clause1: Clause, clause2: Clause, variable: Variable) -> Clause:
         """Resolve two clauses with respect to a variable."""
-        assert variable.index in self.variables
+        assert variable.index in self.variables_by_index
         assert clause1 is self.clauses_by_index[clause1.index]
         assert clause2 is self.clauses_by_index[clause2.index]
         both_literals = itertools.chain(clause1.literals, clause2.literals)
@@ -240,7 +245,7 @@ class Formula:
         """Return a string representation of this formula in QDIMACS format."""
         clauses_in_order = sorted(self.clauses, key=lambda c: c.index)
         clause_strings = (clause.to_qdimacs() for clause in clauses_in_order)
-        header = f"p cnf {len(self.variables)} {len(self.clauses)}"
+        header = f"p cnf {len(self.variables_by_index)} {len(self.clauses)}"
         all_lines = itertools.chain([header], clause_strings)
         return "\n".join(all_lines)
 
@@ -253,7 +258,7 @@ class Formula:
 
     def eliminate_variable(self, variable: Variable) -> None:
         """Eliminate a variable from the formula."""
-        assert variable.index in self.variables
+        assert variable.index in self.variables_by_index
 
         # Resolve all positive and negative literals
         for positive_clause in variable.positive.occurrences:
@@ -268,4 +273,11 @@ class Formula:
             self.clauses.remove(clause)
 
         # Remove the variable from the set of variables
-        del self.variables[variable.index]
+        del self.variables_by_index[variable.index]
+
+    def is_propositional_formula(self) -> bool:
+        """Return whether this formula is quantifier-free."""
+        print(self.quantifiers)
+        if all(quantifier.is_exists() for quantifier in self.quantifiers):
+            return True
+        return False

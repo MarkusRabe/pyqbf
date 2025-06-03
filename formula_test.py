@@ -66,7 +66,7 @@ def test_formula_creation_simple():
     qdimacs = parse.QDimacs(2, [[1, 2], [-1, -2]], [])
     formula_obj = formula.Formula(qdimacs)
 
-    assert len(formula_obj.variables) == 2
+    assert len(formula_obj.variables_by_index) == 2
     assert len(formula_obj.clauses) == 2
 
 
@@ -78,7 +78,9 @@ def test_resolve():
     phi.add_clause(clause1)
     phi.add_clause(clause2)
 
-    variable_1 = filter(lambda v: v.index == 1, phi.variables.values()).__next__()
+    variable_1 = filter(
+        lambda v: v.index == 1, phi.variables_by_index.values()
+    ).__next__()
     resolved_clause = phi.resolve(clause1, clause2, variable_1)
 
     assert len(resolved_clause.literals) == 4
@@ -91,8 +93,10 @@ def test_eliminate_variable():
     """Test eliminating a variable from the formula."""
     qdimacs = parse.QDimacs(3, [[1, 2], [-1, -2], [1, 3]], [])
     phi = formula.Formula(qdimacs)
-    variable_1 = filter(lambda v: v.index == 1, phi.variables.values()).__next__()
+    variable_1 = filter(
+        lambda v: v.index == 1, phi.variables_by_index.values()
+    ).__next__()
     phi.eliminate_variable(variable_1)
 
-    assert len(phi.variables) == 2
+    assert len(phi.variables_by_index) == 2
     assert len(phi.clauses) == 1

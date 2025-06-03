@@ -133,8 +133,7 @@ def test_solve_file_satisfiable_tautology():
 
     result = lib.solve_file(content)
     assert isinstance(result, str)
-    # TODO: This should return "SAT" when a real solver is implemented
-    assert result == "UNSAT"  # Current placeholder behavior
+    assert result == "SAT"
 
 
 def test_solve_file_satisfiable_mixed():
@@ -147,8 +146,7 @@ def test_solve_file_satisfiable_mixed():
 
     result = lib.solve_file(content)
     assert isinstance(result, str)
-    # TODO: This should return "SAT" when a real solver is implemented
-    assert result == "UNSAT"  # Current placeholder behavior
+    assert result == "SAT"
 
 
 def test_solve_file_unsatisfiable():
@@ -215,8 +213,7 @@ def test_solve_classical_sat_satisfiable():
 
     result = lib.solve_file(content)
     assert isinstance(result, str)
-    # TODO: This should return "SAT" when a real solver is implemented
-    assert result == "UNSAT"  # Current placeholder behavior
+    assert result == "SAT"
 
 
 def test_solve_classical_sat_unsatisfiable():
