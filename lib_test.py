@@ -41,7 +41,7 @@ def test_solve_satisfiable_formula():
     file_content = """p cnf 1 2
 e 1 0
 1 0
--1 0"""
+"""
 
     result = lib.solve_file(file_content)
     assert isinstance(result, str)

@@ -16,7 +16,7 @@ def test_read_satisfiable_tautology_file():
 
     result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
-        1, [[1], [-1]], [parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)]
+        1, [[1, -1]], [parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)]
     )
     assert result == expected
 

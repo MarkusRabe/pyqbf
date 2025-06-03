@@ -20,9 +20,6 @@ def solve_by_variable_elimination(puzzle: parse.QDimacs) -> str:
     # Create the formula
     phi = formula.Formula(puzzle)
 
-    if not phi.is_propositional_formula():
-        raise NotImplementedError("Only quantifier-free formulas are supported.")
-
     # Eliminate the variables
     for variable in list(phi.variables):
         phi.eliminate_variable(variable)

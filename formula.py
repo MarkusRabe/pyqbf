@@ -53,6 +53,9 @@ class Variable:
     quantifier: QuantifierType
     positive: Literal = field(init=False)
     negative: Literal = field(init=False)
+    # Universal variables that this variable depends on (i.e. universal
+    # quantifiers that are quantified at a lower level)
+    dependencies: Set["Variable"] = field(default_factory=set)
 
     def __post_init__(self):
         """Initialize the positive and negative literals."""
@@ -124,8 +127,6 @@ class Formula:
 
     def __init__(self, qdimacs: parse.QDimacs):
         self.quantifiers: List[parse.QuantifierBlock] = qdimacs.quantifiers
-        if len(qdimacs.quantifiers) != 0:
-            raise NotImplementedError("Only quantifier-free formulas are supported.")
         self.variables_by_index: Dict[VariableIndex, Variable] = {}
         self.clauses: Set[Clause] = set()
         self.clauses_by_index: Dict[ClauseIndex, Clause] = {}
@@ -135,17 +136,26 @@ class Formula:
         self._largest_used_variable_index = 1
         self._largest_used_clause_index = 0
 
+        universal_variables: Set[Variable] = set()
         for quantifier in qdimacs.quantifiers:
             for variable in quantifier.bound_variables:
-                self.create_fresh_variable(variable, quantifier.quantifier_type)
+                if quantifier.is_forall():
+                    universal_variables.add(variable)
+                if quantifier.is_exists():
+                    self.create_fresh_variable(
+                        variable, quantifier.quantifier_type, universal_variables
+                    )
+                else:
+                    self.create_fresh_variable(variable, quantifier.quantifier_type)
 
         for variable_index in range(1, qdimacs.num_vars + 1):
             if variable_index not in self.variables_by_index:
+                # assuming that these variables are existential and can't depend on any universal variables
                 self.create_fresh_variable(variable_index)
 
         for index, clause in enumerate(qdimacs.clauses):
-            for l in clause:
-                var_index = abs(l)
+            for literal in clause:
+                var_index = abs(literal)
                 if var_index not in self.variables_by_index:
                     self.create_fresh_variable(var_index)
             clause = self.create_clause_from_qdimacs(clause, index)
@@ -166,11 +176,13 @@ class Formula:
         self,
         index: int | None = None,
         quantifier: QuantifierType = QuantifierType.EXISTS,
+        dependencies: Set[Variable] | None = None,
     ) -> Variable:
         """Create a new variable with the given quantifier."""
         index = index or self.next_fresh_variable_index()
         assert index not in self.variables_by_index
-        self.variables_by_index[index] = Variable(index, quantifier)
+        dependencies = dependencies or set()
+        self.variables_by_index[index] = Variable(index, quantifier, dependencies)
         return self.variables_by_index[index]
 
     def next_fresh_clause_index(self) -> int:
@@ -223,9 +235,6 @@ class Formula:
         self.clauses_by_index[clause.index] = clause
         for literal in clause.literals:
             literal.occurrences.add(clause)
-            assert literal is self.variables_by_index[literal.variable].get_literal(
-                literal.is_positive
-            )
 
     def contains_empty_clause(self) -> bool:
         """Return whether this formula contains the empty clause."""
@@ -261,26 +270,117 @@ class Formula:
         """Eliminate a variable from the formula."""
         assert variable.index in self.variables_by_index
 
-        # Resolve all positive and negative literals
+        # Collect all resolvents first
+        resolvents = []
         for positive_clause in variable.positive.occurrences:
             for negative_clause in variable.negative.occurrences:
                 resolvent = self.resolve(positive_clause, negative_clause, variable)
                 # apply universal reduction
                 resolvent = self.universal_reduction(resolvent)
-
-                self.add_clause(resolvent)
+                resolvents.append(resolvent)
 
         # Mark all clauses containing the variable as inactive
         for clause in variable.positive.occurrences | variable.negative.occurrences:
-            del self.clauses_by_index[clause.index]
-            self.clauses.remove(clause)
+            if clause.index in self.clauses_by_index:
+                del self.clauses_by_index[clause.index]
+            if clause in self.clauses:
+                self.clauses.remove(clause)
 
         # Remove the variable from the set of variables
         del self.variables_by_index[variable.index]
 
+        # Now add all the resolvents
+        for resolvent in resolvents:
+            self.add_clause(resolvent)
+
     def is_propositional_formula(self) -> bool:
         """Return whether this formula is quantifier-free."""
-        print(self.quantifiers)
         if all(quantifier.is_exists() for quantifier in self.quantifiers):
             return True
         return False
+
+    def universal_reduction(self, clause: Clause) -> Clause:
+        """Apply universal reduction to a clause.
+
+        Universal reduction removes universally quantified literals from a clause
+        if the universal variable is quantified to the right of all existential
+        variable in the same clause.
+        """
+        if not self.quantifiers:
+            # No quantifiers, return clause as-is
+            return clause
+
+        # Build quantifier level mapping and type mapping
+        var_to_level = {}
+        var_to_quantifier = {}
+        for level, quantifier_block in enumerate(self.quantifiers):
+            for var_index in quantifier_block.bound_variables:
+                var_to_level[var_index] = level
+                var_to_quantifier[var_index] = quantifier_block.quantifier_type
+
+        # Separate universal and existential literals
+        universal_literals = []
+        existential_literals = []
+
+        for literal in clause.literals:
+            var_index = literal.variable
+            if var_index in var_to_quantifier:
+                if var_to_quantifier[var_index] == QuantifierType.FORALL:
+                    universal_literals.append(literal)
+                else:
+                    existential_literals.append(literal)
+            else:
+                # Treat unquantified variables as existential
+                existential_literals.append(literal)
+
+        # Apply universal reduction rule:
+        # Remove universal literals that are at a higher level (right) than ANY existential literal
+        reduced_literals = list(existential_literals)
+
+        for universal_lit in universal_literals:
+            universal_level = var_to_level.get(universal_lit.variable, -1)
+
+            # Check if this universal literal can be reduced
+            # It can be reduced if it's at a higher level than ANY existential literal
+            can_reduce = False
+            for existential_lit in existential_literals:
+                existential_level = var_to_level.get(
+                    existential_lit.variable, float("inf")
+                )
+                # If universal is at a higher level than this existential, it can be reduced
+                if universal_level > existential_level:
+                    can_reduce = True
+                    break
+
+            if not can_reduce:
+                # Keep the universal literal
+                reduced_literals.append(universal_lit)
+
+        # Create new clause with reduced literals
+        if len(reduced_literals) == len(clause.literals):
+            # No reduction possible, return original clause
+            return clause
+
+        # Create a new clause with the reduced literals
+        # We need to make sure the literals reference the correct variables
+        corrected_literals = []
+        for lit in reduced_literals:
+            if lit.variable in self.variables_by_index:
+                # Use the existing literal from the variable
+                var = self.variables_by_index[lit.variable]
+                corrected_literals.append(var.get_literal(lit.is_positive))
+            else:
+                # Variable doesn't exist anymore, skip this literal
+                continue
+
+        if not corrected_literals:
+            # If no literals remain, return an empty clause
+            # return Clause.from_literals(
+            #     [], self.next_fresh_clause_index(), is_original=False
+            # )
+            return self.generate_empty_clause()
+
+        new_clause = Clause.from_literals(
+            corrected_literals, self.next_fresh_clause_index(), is_original=False
+        )
+        return new_clause
