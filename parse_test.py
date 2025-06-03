@@ -51,8 +51,12 @@ def test_parse_comments():
 def test_parse_clauses():
     """Test parsing valid clauses."""
     assert parse.from_qdimacs("p cnf 1 1\n1 0") == parse.QDimacs(1, [[1]], [])
-    assert parse.from_qdimacs("p cnf 1 2\n1 0\n-1 0") == parse.QDimacs(1, [[1], [-1]], [])
-    assert parse.from_qdimacs("p cnf 2 2\n1 2 0\n-1 0") == parse.QDimacs(2, [[1, 2], [-1]], [])
+    assert parse.from_qdimacs("p cnf 1 2\n1 0\n-1 0") == parse.QDimacs(
+        1, [[1], [-1]], []
+    )
+    assert parse.from_qdimacs("p cnf 2 2\n1 2 0\n-1 0") == parse.QDimacs(
+        2, [[1, 2], [-1]], []
+    )
 
 
 def test_parse_invalid_clauses():
@@ -99,14 +103,18 @@ def test_parse_qdimacs():
 def test_parse_forall_quantifier():
     """Test parsing forall quantifier."""
     result = parse.from_qdimacs("p cnf 2 1\na 1 2 0\n1 2 0")
-    expected = parse.QDimacs(2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL)])
+    expected = parse.QDimacs(
+        2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL)]
+    )
     assert result == expected
 
 
 def test_parse_exists_quantifier():
     """Test parsing exists quantifier."""
     result = parse.from_qdimacs("p cnf 2 1\ne 1 2 0\n1 2 0")
-    expected = parse.QDimacs(2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.EXISTS)])
+    expected = parse.QDimacs(
+        2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.EXISTS)]
+    )
     assert result == expected
 
 
@@ -118,8 +126,8 @@ def test_parse_multiple_quantifier_blocks():
         [[1, 2, 3, 4]],
         [
             parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([3, 4], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([3, 4], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -174,11 +182,7 @@ e 1 0
 
     result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
-        1,
-        [[1, -1]],
-        [
-            parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)
-        ]
+        1, [[1, -1]], [parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)]
     )
     assert result == expected
 
@@ -205,8 +209,8 @@ e 2 0
         [[1, 2], [-1, 2]],
         [
             parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -224,8 +228,8 @@ e 2 0
         [[1, -2]],
         [
             parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -244,8 +248,8 @@ e 2 3 0
         [[1, 2], [-1, -2, 3]],
         [
             parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([2, 3], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([2, 3], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -268,8 +272,8 @@ e 4 0
             parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
             parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
             parse.QuantifierBlock([3], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([4], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([4], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -289,8 +293,8 @@ e 4 5 6 0
         [[1, 4], [2, 5], [3, 6]],
         [
             parse.QuantifierBlock([1, 2, 3], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([4, 5, 6], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([4, 5, 6], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -313,8 +317,8 @@ e 3 4 5 0
         [[1, 3], [2, 4], [-1, -2, 5], [3, -4, -5]],
         [
             parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([3, 4, 5], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([3, 4, 5], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -340,8 +344,8 @@ c End of formula"""
         [[1, 2], [-1, 2]],
         [
             parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
-            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS)
-        ]
+            parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
+        ],
     )
     assert result == expected
 
@@ -354,11 +358,7 @@ def test_classical_sat_formula():
 1 0"""
 
     result = parse.from_qdimacs(qdimacs)
-    expected = parse.QDimacs(
-        1,
-        [[1]],
-        []  # No quantifiers in classical SAT
-    )
+    expected = parse.QDimacs(1, [[1]], [])  # No quantifiers in classical SAT
     assert result == expected
 
 
@@ -370,11 +370,7 @@ def test_classical_sat_unsatisfiable():
 -1 0"""
 
     result = parse.from_qdimacs(qdimacs)
-    expected = parse.QDimacs(
-        1,
-        [[1], [-1]],
-        []  # No quantifiers in classical SAT
-    )
+    expected = parse.QDimacs(1, [[1], [-1]], [])  # No quantifiers in classical SAT
     assert result == expected
 
 
@@ -387,9 +383,7 @@ def test_classical_sat_multiple_variables():
 
     result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
-        2,
-        [[1, 2], [-1, 2]],
-        []  # No quantifiers in classical SAT
+        2, [[1, 2], [-1, 2]], []  # No quantifiers in classical SAT
     )
     assert result == expected
 
@@ -405,11 +399,7 @@ e 1 0
 
     result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
-        1,
-        [[1], [-1]],
-        [
-            parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)
-        ]
+        1, [[1], [-1]], [parse.QuantifierBlock([1], parse.QuantifierType.EXISTS)]
     )
     assert result == expected
 
@@ -428,7 +418,7 @@ a 2 0
         [[1, 2]],
         [
             parse.QuantifierBlock([1], parse.QuantifierType.EXISTS),
-            parse.QuantifierBlock([2], parse.QuantifierType.FORALL)
-        ]
+            parse.QuantifierBlock([2], parse.QuantifierType.FORALL),
+        ],
     )
     assert result == expected

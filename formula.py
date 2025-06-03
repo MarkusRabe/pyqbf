@@ -10,16 +10,17 @@ VariableIndex = int
 ClauseIndex = int
 
 QuantifierType = parse.QuantifierType
-    
 
 
 @dataclass(frozen=True)
 class Literal:
     """Represents a literal in a QBF formula."""
-    
+
     variable: VariableIndex
     is_positive: bool
-    occurrences: Set["Clause"] = field(default_factory=set)  # notably, occurence set is not frozen
+    occurrences: Set["Clause"] = field(
+        default_factory=set
+    )  # notably, occurence set is not frozen
 
     def __post_init__(self):
         """Initialize the occurrences set."""
@@ -27,17 +28,17 @@ class Literal:
     def literal_index(self) -> int:
         """Return the index of this literal in the formula."""
         return self.variable if self.is_positive else -self.variable
-    
+
     def __eq__(self, value):
         """Return whether this literal is equal to another."""
         if not isinstance(value, Literal):
             return False
         return self.variable == value.variable and self.is_positive == value.is_positive
-    
+
     def __hash__(self):
         """Return the hash of this literal."""
         return hash((self.variable, self.is_positive))
-    
+
     # TODO(markus): is this a good idea? Will lead to duplicate literal objects.
     def __neg__(self):
         """Return the negation of this literal."""
@@ -65,7 +66,7 @@ class Variable:
     def __hash__(self):
         """Return the hash of this variable."""
         return hash(self.index)
-    
+
     def __eq__(self, value):
         """Return whether this variable is equal to another."""
         if not isinstance(value, Variable):
@@ -83,7 +84,9 @@ class Clause:
     is_original: bool = False
 
     @staticmethod
-    def from_literals(literals: Sequence[Literal], index: ClauseIndex, is_original: bool = False) -> "Clause":
+    def from_literals(
+        literals: Sequence[Literal], index: ClauseIndex, is_original: bool = False
+    ) -> "Clause":
         """Create a clause from a list of literals."""
         return Clause(frozenset(literals), index, is_original)
 
@@ -100,13 +103,15 @@ class Clause:
     def __repr__(self):
         """Return a string representation of this clause."""
         return f"Clause({self.literals})"
-    
+
     def to_qdimacs(self) -> str:
         """Return a string representation of this clause in QDIMACS format."""
         clause_str = " ".join(str(l.literal_index()) for l in self.literals) + " 0"
-        comment = f"c Clause {self.index}, {'original' if self.is_original else 'derived'}"
+        comment = (
+            f"c Clause {self.index}, {'original' if self.is_original else 'derived'}"
+        )
         return f"{comment}\n{clause_str}"
-    
+
     def is_tautology(self) -> bool:
         """Return whether this clause is a tautology."""
         return any(-l in self.literals for l in self.literals)
@@ -125,7 +130,6 @@ class Formula:
         self.clauses: Set[Clause] = set()
         self.clauses_by_index: Dict[ClauseIndex, Clause] = {}
 
-
         # Largest variable/clause index that MAY be in use.
         # 0 is not a valid variable index.
         self._largest_used_variable_index = 1
@@ -134,7 +138,7 @@ class Formula:
         for quantifier in qdimacs.quantifiers:
             for variable in quantifier.bound_variables:
                 self.create_fresh_variable(variable, quantifier.quantifier_type)
-        
+
         for variable_index in range(1, qdimacs.num_vars + 1):
             if variable_index not in self.variables:
                 self.create_fresh_variable(variable_index)
@@ -153,7 +157,11 @@ class Formula:
             self._largest_used_variable_index += 1
         return self._largest_used_variable_index
 
-    def create_fresh_variable(self, index: int | None = None, quantifier: QuantifierType = QuantifierType.EXISTS) -> Variable:
+    def create_fresh_variable(
+        self,
+        index: int | None = None,
+        quantifier: QuantifierType = QuantifierType.EXISTS,
+    ) -> Variable:
         """Create a new variable with the given quantifier."""
         index = index or self.next_fresh_variable_index()
         assert index not in self.variables
@@ -165,14 +173,16 @@ class Formula:
         while self._largest_used_clause_index in self.clauses_by_index:
             self._largest_used_clause_index += 1
         return self._largest_used_clause_index
-    
+
     def get_literal_by_index(self, literal_index: int) -> Literal:
         """Return the literal with the given QDIMACS index."""
         variable_index = abs(literal_index)
         is_positive = literal_index > 0
         return self.variables[variable_index].get_literal(is_positive)
-    
-    def create_clause_from_qdimacs(self, clause: Sequence[int], index: ClauseIndex) -> Clause:
+
+    def create_clause_from_qdimacs(
+        self, clause: Sequence[int], index: ClauseIndex
+    ) -> Clause:
         """Create a clause from a list of QDIMACS literals."""
         literals = (self.get_literal_by_index(lit) for lit in clause)
         return Clause(frozenset(literals), index, is_original=True)
@@ -188,18 +198,28 @@ class Formula:
         # Optimization: find literal with smallest number of occurrences
         rarest_literal = min(clause.literals, key=lambda l: len(l.occurrences))
         # Optimization: only check clauses that are shorter
-        candidate_clauses = (c for c in rarest_literal.occurrences if len(c.literals) <= len(clause.literals))
-        return any(other.literals.issubset(clause.literals) for other in candidate_clauses)
+        candidate_clauses = (
+            c
+            for c in rarest_literal.occurrences
+            if len(c.literals) <= len(clause.literals)
+        )
+        return any(
+            other.literals.issubset(clause.literals) for other in candidate_clauses
+        )
 
     def add_clause(self, clause: Clause):
         """Add a clause to the formula."""
-        assert clause.index not in self.clauses, f"Clause {clause.index} already in formula. {clause}, {self.clauses[clause.index]}"
+        assert (
+            clause.index not in self.clauses
+        ), f"Clause {clause.index} already in formula. {clause}, {self.clauses[clause.index]}"
         if not self.is_clause_subsumed(clause):
             self.clauses.add(clause)
             self.clauses_by_index[clause.index] = clause
             for literal in clause.literals:
                 literal.occurrences.add(clause)
-                assert literal is self.variables[literal.variable].get_literal(literal.is_positive)
+                assert literal is self.variables[literal.variable].get_literal(
+                    literal.is_positive
+                )
 
     def contains_empty_clause(self) -> bool:
         """Return whether this formula contains the empty clause."""
@@ -212,8 +232,10 @@ class Formula:
         assert clause2 is self.clauses_by_index[clause2.index]
         both_literals = itertools.chain(clause1.literals, clause2.literals)
         literals = (l for l in both_literals if l.variable != variable.index)
-        return Clause.from_literals(literals, self.next_fresh_clause_index(), is_original=False)
-    
+        return Clause.from_literals(
+            literals, self.next_fresh_clause_index(), is_original=False
+        )
+
     def to_qdimacs(self) -> str:
         """Return a string representation of this formula in QDIMACS format."""
         clauses_in_order = sorted(self.clauses, key=lambda c: c.index)
@@ -225,7 +247,9 @@ class Formula:
     @functools.lru_cache()
     def generate_empty_clause(self) -> Clause:
         """Generate an empty clause."""
-        return Clause.from_literals((), self.next_fresh_clause_index(), is_original=False)
+        return Clause.from_literals(
+            (), self.next_fresh_clause_index(), is_original=False
+        )
 
     def eliminate_variable(self, variable: Variable) -> None:
         """Eliminate a variable from the formula."""
@@ -237,7 +261,7 @@ class Formula:
                 resolvent = self.resolve(positive_clause, negative_clause, variable)
                 if not resolvent.is_tautology():
                     self.add_clause(resolvent)
-        
+
         # Mark all clauses containing the variable as inactive
         for clause in variable.positive.occurrences | variable.negative.occurrences:
             del self.clauses_by_index[clause.index]

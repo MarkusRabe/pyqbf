@@ -1,4 +1,5 @@
 """QBF solver library."""
+
 from typing import List, Tuple, Set, Dict, FrozenSet, Optional
 from itertools import chain, combinations
 from collections import defaultdict
@@ -10,6 +11,7 @@ import sys
 import time
 
 import parse
+
 
 def solve_file(file_content: str) -> str:
     """Solve a QBF given in QDIMACS format."""
@@ -24,7 +26,7 @@ def solve(puzzle: parse.QDimacs) -> str:
 
 def expand_forall(puzzle: parse.QDimacs, variable_to_expand: int) -> None:
     """Expand a forall quantifier by duplicating the clauses."""
-    
+
 
 def solve_by_expansion(puzzle: parse.QDimacs) -> str:
     """Solve a QBF puzzle by expansion of variables."""
@@ -38,5 +40,3 @@ def solve_by_expansion(puzzle: parse.QDimacs) -> str:
                 expand_forall(puzzle_copy, variable)
         else:
             raise ValueError(f"Unknown quantifier type: {quantifier.quantifier_type}")
-
-

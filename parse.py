@@ -6,12 +6,14 @@ from enum import Enum
 
 class QuantifierType(Enum):
     """Enum for quantifier types in QDIMACS files."""
+
     FORALL = "forall"
     EXISTS = "exists"
 
 
 class QDimacsError(Exception):
     """Base class for exceptions in this module."""
+
     pass
 
 
@@ -28,7 +30,7 @@ class QDimacsParseError(QDimacsError):
 
 class QuantifierBlock:
     """Represents a quantifier block in a QDIMACS file."""
-    
+
     def __init__(self, bound_variables: List[int], quantifier_type: QuantifierType):
         self.bound_variables = bound_variables
         self.quantifier_type = quantifier_type
@@ -40,14 +42,16 @@ class QuantifierBlock:
     def is_exists(self) -> bool:
         """Return whether this is an exists quantifier block."""
         return self.quantifier_type == QuantifierType.EXISTS
-    
+
     def __eq__(self, other) -> bool:
         """Return whether this QuantifierBlock is equal to another."""
         if not isinstance(other, QuantifierBlock):
             return False
-        return (self.bound_variables == other.bound_variables and 
-                self.quantifier_type == other.quantifier_type)
-    
+        return (
+            self.bound_variables == other.bound_variables
+            and self.quantifier_type == other.quantifier_type
+        )
+
     def __repr__(self) -> str:
         """Return a string representation of this QuantifierBlock."""
         return f"QuantifierBlock({self.bound_variables}, {self.quantifier_type})"
@@ -56,7 +60,12 @@ class QuantifierBlock:
 class QDimacs:
     """Represents a QDIMACS file."""
 
-    def __init__(self, num_vars: int, clauses: Sequence[List[int]] = (), quantifiers: Sequence[QuantifierBlock] = ()):
+    def __init__(
+        self,
+        num_vars: int,
+        clauses: Sequence[List[int]] = (),
+        quantifiers: Sequence[QuantifierBlock] = (),
+    ):
         """Initialize a QDimacs instance.
 
         Args:
@@ -67,7 +76,7 @@ class QDimacs:
         self.num_vars: int = num_vars
         self.clauses: List[List[int]] = list(clauses)
         self.quantifiers: List[QuantifierBlock] = list(quantifiers)
-    
+
     def copy(self) -> "QDimacs":
         """Return a copy of this QDimacs instance."""
         return QDimacs(self.num_vars, self.clauses, self.quantifiers)
@@ -77,26 +86,29 @@ class QDimacs:
         return f"p cnf {self.num_vars} {len(self.clauses)}\n" + "\n".join(
             " ".join(str(lit) for lit in clause) + " 0" for clause in self.clauses
         )
-    
+
     def __eq__(self, other) -> bool:
         """Return whether this QDimacs is equal to another."""
         if not isinstance(other, QDimacs):
             return False
-        return (self.num_vars == other.num_vars and 
-                self.clauses == other.clauses and 
-                self.quantifiers == other.quantifiers)
-    
+        return (
+            self.num_vars == other.num_vars
+            and self.clauses == other.clauses
+            and self.quantifiers == other.quantifiers
+        )
+
     def __repr__(self) -> str:
         """Return a string representation of this QDimacs."""
         return f"QDimacs({self.num_vars}, {self.clauses}, {self.quantifiers})"
-
 
 
 def from_qdimacs(file_content: str) -> QDimacs:
     """Parse a QDIMACS file from string."""
     lines = file_content.splitlines()
     # Remove comments and empty lines
-    lines = [line.strip() for line in lines if line.strip() and not line.startswith("c")]
+    lines = [
+        line.strip() for line in lines if line.strip() and not line.startswith("c")
+    ]
 
     if not lines:
         raise QDimacsParseError("Empty file")
@@ -144,7 +156,11 @@ def from_qdimacs(file_content: str) -> QDimacs:
                 variables = variables[:-1]
                 if not variables:
                     raise QDimacsParseError("Empty quantifier block")
-                quantifiers.append(QuantifierBlock([int(literal) for literal in variables], quantifier_type))
+                quantifiers.append(
+                    QuantifierBlock(
+                        [int(literal) for literal in variables], quantifier_type
+                    )
+                )
             except ValueError:
                 raise QDimacsParseError("Invalid quantifier")
             continue

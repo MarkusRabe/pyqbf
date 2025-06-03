@@ -10,7 +10,10 @@ def main():
     """Entry point for the solver."""
     parser = argparse.ArgumentParser(description="Solve a quantified boolean formula.")
     parser.add_argument(
-        "file", metavar="FILE", type=str, help="The file to read the problem from. In QDIMACS format."
+        "file",
+        metavar="FILE",
+        type=str,
+        help="The file to read the problem from. In QDIMACS format.",
     )
     args = parser.parse_args()
 

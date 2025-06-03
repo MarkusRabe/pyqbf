@@ -10,7 +10,7 @@ def test_literal_index():
     """Test that literal_index returns correct values for positive and negative literals."""
     positive_lit = formula.Literal(3, True)
     negative_lit = formula.Literal(3, False)
-    
+
     assert positive_lit.literal_index() == 3
     assert negative_lit.literal_index() == -3
 
@@ -20,7 +20,7 @@ def test_literal_equality():
     lit1 = formula.Literal(3, True)
     lit2 = formula.Literal(3, True)
     lit3 = formula.Literal(3, False)
-    
+
     assert lit1 == lit2
     assert lit1 != lit3
     assert lit2 != lit3
@@ -36,14 +36,19 @@ def test_literal_equality():
 
 def test_tautology():
     """Test that is_tautology returns True for clauses that are tautologies."""
-    clause = formula.Clause.from_literals([formula.Literal(1, True), formula.Literal(1, False)], index=0)
-    
+    clause = formula.Clause.from_literals(
+        [formula.Literal(1, True), formula.Literal(1, False)], index=0
+    )
+
     assert clause.is_tautology()
+
 
 def test_not_tautology():
     """Test that is_tautology returns False for clauses that are not tautologies."""
-    clause = formula.Clause.from_literals([formula.Literal(1, True), formula.Literal(2, True)], index=0)
-    
+    clause = formula.Clause.from_literals(
+        [formula.Literal(1, True), formula.Literal(2, True)], index=0
+    )
+
     assert not clause.is_tautology()
 
 
@@ -51,7 +56,7 @@ def test_clause_from_qdimacs():
     """Test creating a clause from QDIMACS format."""
     phi = formula.Formula(parse.QDimacs(3, [[1, -2, 3]], []))
     clause = phi.clauses_by_index[0]
-    
+
     assert len(clause.literals) == 3
     assert clause.index == 0
 
@@ -60,7 +65,7 @@ def test_formula_creation_simple():
     """Test creating a formula from a simple quantifier-free QDIMACS input."""
     qdimacs = parse.QDimacs(2, [[1, 2], [-1, -2]], [])
     formula_obj = formula.Formula(qdimacs)
-    
+
     assert len(formula_obj.variables) == 2
     assert len(formula_obj.clauses) == 2
 
@@ -75,11 +80,12 @@ def test_resolve():
 
     variable_1 = filter(lambda v: v.index == 1, phi.variables.values()).__next__()
     resolved_clause = phi.resolve(clause1, clause2, variable_1)
-    
+
     assert len(resolved_clause.literals) == 4
     assert formula.Literal(2, True) in resolved_clause.literals
     assert formula.Literal(3, True) in resolved_clause.literals
     assert resolved_clause.is_tautology()
+
 
 def test_eliminate_variable():
     """Test eliminating a variable from the formula."""
