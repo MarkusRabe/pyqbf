@@ -13,15 +13,30 @@ import parse
 
 def solve_file(file_content: str) -> str:
     """Solve a QBF given in QDIMACS format."""
-    puzzle = parse.parse_qdimacs(file_content)
+    puzzle = parse.from_qdimacs(file_content)
     return solve(puzzle)
 
 
 def solve(puzzle: parse.QDimacs) -> str:
-    """Solve a QBF puzzle.
+    """Solve a QBF puzzle."""
+    return "UNSAT"  # Placeholder
 
-    This is a placeholder implementation that always returns "UNSAT".
-    In a real implementation, this would use a QBF solving algorithm.
-    """
-    # For now, just return a placeholder result
-    return "UNSAT"
+
+def expand_forall(puzzle: parse.QDimacs, variable_to_expand: int) -> None:
+    """Expand a forall quantifier by duplicating the clauses."""
+    
+
+def solve_by_expansion(puzzle: parse.QDimacs) -> str:
+    """Solve a QBF puzzle by expansion of variables."""
+    # Make a copy of the puzzle so we don't modify the original
+    puzzle_copy = puzzle.copy()
+
+    # Expand the quantifiers
+    for quantifier in puzzle.quantifiers:
+        if quantifier.is_forall():
+            for variable in quantifier.bound_variables:
+                expand_forall(puzzle_copy, variable)
+        else:
+            raise ValueError(f"Unknown quantifier type: {quantifier.quantifier_type}")
+
+

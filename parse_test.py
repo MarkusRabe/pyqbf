@@ -6,113 +6,113 @@ import parse
 
 
 def test_parse_empty():
-    """Test that parse.QDimacs.parse raises the correct exceptions."""
+    """Test that parse.from_qdimacs raises the correct exceptions."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("")
+        parse.from_qdimacs("")
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("c")
+        parse.from_qdimacs("c")
 
 
 def test_parse_header_raises():
-    """Test that parse.QDimacs.parse raises the correct exceptions."""
+    """Test that parse.from_qdimacs raises the correct exceptions."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p")
+        parse.from_qdimacs("p")
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf")
+        parse.from_qdimacs("p cnf")
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 0")
+        parse.from_qdimacs("p cnf 0")
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1")
+        parse.from_qdimacs("p cnf 1")
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("q cnf 1 1")  # Invalid header prefix
+        parse.from_qdimacs("q cnf 1 1")  # Invalid header prefix
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p sat 1 1")  # Invalid format
+        parse.from_qdimacs("p sat 1 1")  # Invalid format
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf a 1")  # Invalid number of variables
+        parse.from_qdimacs("p cnf a 1")  # Invalid number of variables
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 a")  # Invalid number of clauses
+        parse.from_qdimacs("p cnf 1 a")  # Invalid number of clauses
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 0 1")  # Invalid number of variables
+        parse.from_qdimacs("p cnf 0 1")  # Invalid number of variables
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 -1")  # Invalid number of clauses
+        parse.from_qdimacs("p cnf 1 -1")  # Invalid number of clauses
 
 
 def test_parse_header():
     """Test parsing valid headers."""
-    assert parse.QDimacs.parse("p cnf 1 0") == parse.QDimacs(1, [], [])
+    assert parse.from_qdimacs("p cnf 1 0") == parse.QDimacs(1, [], [])
 
 
 def test_parse_comments():
-    """Test that parse.QDimacs.parse ignores comments."""
-    assert parse.QDimacs.parse("c\np cnf 1 0") == parse.QDimacs(1, [], [])
-    assert parse.QDimacs.parse("c\np cnf 1 0\nc") == parse.QDimacs(1, [], [])
+    """Test that parse.from_qdimacs ignores comments."""
+    assert parse.from_qdimacs("c\np cnf 1 0") == parse.QDimacs(1, [], [])
+    assert parse.from_qdimacs("c\np cnf 1 0\nc") == parse.QDimacs(1, [], [])
 
 
 def test_parse_clauses():
     """Test parsing valid clauses."""
-    assert parse.QDimacs.parse("p cnf 1 1\n1 0") == parse.QDimacs(1, [[1]], [])
-    assert parse.QDimacs.parse("p cnf 1 2\n1 0\n-1 0") == parse.QDimacs(1, [[1], [-1]], [])
-    assert parse.QDimacs.parse("p cnf 2 2\n1 2 0\n-1 0") == parse.QDimacs(2, [[1, 2], [-1]], [])
+    assert parse.from_qdimacs("p cnf 1 1\n1 0") == parse.QDimacs(1, [[1]], [])
+    assert parse.from_qdimacs("p cnf 1 2\n1 0\n-1 0") == parse.QDimacs(1, [[1], [-1]], [])
+    assert parse.from_qdimacs("p cnf 2 2\n1 2 0\n-1 0") == parse.QDimacs(2, [[1, 2], [-1]], [])
 
 
 def test_parse_invalid_clauses():
     """Test parsing invalid clauses."""
     # Clause without ending 0
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n1")
+        parse.from_qdimacs("p cnf 1 1\n1")
 
     # Clause with invalid literal
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\nabc 0")
+        parse.from_qdimacs("p cnf 1 1\nabc 0")
 
     # Empty clause
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n0")
+        parse.from_qdimacs("p cnf 1 1\n0")
 
     # Clause with 0 in the middle
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n1 0 2 0")
+        parse.from_qdimacs("p cnf 1 1\n1 0 2 0")
 
     # Clause with variable out of range
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n2 0")
+        parse.from_qdimacs("p cnf 1 1\n2 0")
 
     # Duplicate clause
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 2\n1 0\n1 0")
+        parse.from_qdimacs("p cnf 1 2\n1 0\n1 0")
 
     # Test that empty clauses are rejected
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n 0")
+        parse.from_qdimacs("p cnf 1 1\n 0")
 
     # Test that clauses with 0 in them are rejected
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\n0 1 0")
+        parse.from_qdimacs("p cnf 1 1\n0 1 0")
 
 
 def test_parse_qdimacs():
-    """Test that parse_qdimacs correctly parses a QDIMACS file."""
-    # Test that parse_qdimacs calls parse.QDimacs.parse
-    assert parse.parse_qdimacs("p cnf 1 1\n1 0") == parse.QDimacs(1, [[1]], [])
+    """Test that parse.from_qdimacs correctly parses a QDIMACS file."""
+    # Test that parse.from_qdimacs calls parse.from_qdimacs
+    assert parse.from_qdimacs("p cnf 1 1\n1 0") == parse.QDimacs(1, [[1]], [])
 
 
 def test_parse_forall_quantifier():
     """Test parsing forall quantifier."""
-    result = parse.QDimacs.parse("p cnf 2 1\na 1 2 0\n1 2 0")
+    result = parse.from_qdimacs("p cnf 2 1\na 1 2 0\n1 2 0")
     expected = parse.QDimacs(2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.FORALL)])
     assert result == expected
 
 
 def test_parse_exists_quantifier():
     """Test parsing exists quantifier."""
-    result = parse.QDimacs.parse("p cnf 2 1\ne 1 2 0\n1 2 0")
+    result = parse.from_qdimacs("p cnf 2 1\ne 1 2 0\n1 2 0")
     expected = parse.QDimacs(2, [[1, 2]], [parse.QuantifierBlock([1, 2], parse.QuantifierType.EXISTS)])
     assert result == expected
 
 
 def test_parse_multiple_quantifier_blocks():
     """Test parsing multiple quantifier blocks."""
-    result = parse.QDimacs.parse("p cnf 4 1\na 1 2 0\ne 3 4 0\n1 2 3 4 0")
+    result = parse.from_qdimacs("p cnf 4 1\na 1 2 0\ne 3 4 0\n1 2 3 4 0")
     expected = parse.QDimacs(
         4,
         [[1, 2, 3, 4]],
@@ -127,31 +127,31 @@ def test_parse_multiple_quantifier_blocks():
 def test_invalid_quantifier_variable():
     """Test parsing quantifier with invalid variable name."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 2 1\na abc 0\n1 2 0")
+        parse.from_qdimacs("p cnf 2 1\na abc 0\n1 2 0")
 
 
 def test_empty_quantifier_block():
     """Test parsing empty quantifier block."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\na 0\n1 0")
+        parse.from_qdimacs("p cnf 1 1\na 0\n1 0")
 
 
 def test_quantifier_block_whitespace_only():
     """Test parsing quantifier block with only whitespace."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\na \n1 0")
+        parse.from_qdimacs("p cnf 1 1\na \n1 0")
 
 
 def test_quantifier_block_missing_terminator():
     """Test parsing quantifier block without 0 terminator."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 2 1\na 1 2\n1 2 0")
+        parse.from_qdimacs("p cnf 2 1\na 1 2\n1 2 0")
 
 
 def test_quantifier_block_no_variables():
     """Test parsing quantifier block with no variables at all."""
     with pytest.raises(parse.QDimacsParseError):
-        parse.QDimacs.parse("p cnf 1 1\na\n1 0")
+        parse.from_qdimacs("p cnf 1 1\na\n1 0")
 
 
 def test_quantifier_block_methods():
@@ -172,7 +172,7 @@ def test_tautology():
 e 1 0
 1 -1 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         1,
         [[1, -1]],
@@ -199,7 +199,7 @@ e 2 0
 1 2 0
 -1 2 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2]],
@@ -218,7 +218,7 @@ a 1 0
 e 2 0
 1 -2 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         2,
         [[1, -2]],
@@ -238,7 +238,7 @@ e 2 3 0
 1 2 0
 -1 -2 3 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         3,
         [[1, 2], [-1, -2, 3]],
@@ -260,7 +260,7 @@ e 4 0
 1 2 3 0
 -1 -3 4 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         4,
         [[1, 2, 3], [-1, -3, 4]],
@@ -283,7 +283,7 @@ e 4 5 6 0
 2 5 0
 3 6 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         6,
         [[1, 4], [2, 5], [3, 6]],
@@ -307,7 +307,7 @@ e 3 4 5 0
 -1 -2 5 0
 3 -4 -5 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         5,
         [[1, 3], [2, 4], [-1, -2, 5], [3, -4, -5]],
@@ -334,7 +334,7 @@ c Second clause: ¬x ∨ y
 -1 2 0
 c End of formula"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2]],
@@ -353,7 +353,7 @@ def test_classical_sat_formula():
     qdimacs = """p cnf 1 1
 1 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         1,
         [[1]],
@@ -369,7 +369,7 @@ def test_classical_sat_unsatisfiable():
 1 0
 -1 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         1,
         [[1], [-1]],
@@ -385,7 +385,7 @@ def test_classical_sat_multiple_variables():
 1 2 0
 -1 2 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2]],
@@ -403,7 +403,7 @@ e 1 0
 1 0
 -1 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         1,
         [[1], [-1]],
@@ -422,7 +422,7 @@ e 1 0
 a 2 0
 1 2 0"""
 
-    result = parse.QDimacs.parse(qdimacs)
+    result = parse.from_qdimacs(qdimacs)
     expected = parse.QDimacs(
         2,
         [[1, 2]],

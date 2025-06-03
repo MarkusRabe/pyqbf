@@ -14,7 +14,7 @@ def test_read_satisfiable_tautology_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         1,
         [[1], [-1]],
@@ -31,7 +31,7 @@ def test_read_satisfiable_mixed_quantifiers_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         2,
         [[1, 2]],
@@ -51,7 +51,7 @@ def test_read_classic_qbf_example_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2]],
@@ -71,7 +71,7 @@ def test_read_unsatisfiable_example_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, -2], [1, -2], [-1, 2]],
@@ -91,7 +91,7 @@ def test_read_complex_alternating_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         4,
         [[1, 2, 3], [-1, -3, 4]],
@@ -113,7 +113,7 @@ def test_read_large_formula_file():
     with open(file_path, 'r') as f:
         content = f.read()
     
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         5,
         [[1, 3], [2, 4], [-1, -2, 5], [3, -4, -5]],
@@ -174,7 +174,7 @@ def test_read_classical_sat_satisfiable_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         1,
         [[1]],
@@ -191,7 +191,7 @@ def test_read_classical_sat_unsatisfiable_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         1,
         [[1], [-1]],
@@ -208,7 +208,7 @@ def test_read_classical_sat_complex_file():
     with open(file_path, 'r') as f:
         content = f.read()
 
-    result = parse.QDimacs.parse(content)
+    result = parse.from_qdimacs(content)
     expected = parse.QDimacs(
         2,
         [[1, 2], [-1, 2], [1, -2]],
