@@ -217,14 +217,15 @@ class Formula:
         assert (
             clause.index not in self.clauses
         ), f"Clause {clause.index} already in formula. {clause}, {self.clauses[clause.index]}"
-        if not self.is_clause_subsumed(clause):
-            self.clauses.add(clause)
-            self.clauses_by_index[clause.index] = clause
-            for literal in clause.literals:
-                literal.occurrences.add(clause)
-                assert literal is self.variables_by_index[literal.variable].get_literal(
-                    literal.is_positive
-                )
+        if self.is_clause_subsumed(clause):
+            return
+        self.clauses.add(clause)
+        self.clauses_by_index[clause.index] = clause
+        for literal in clause.literals:
+            literal.occurrences.add(clause)
+            assert literal is self.variables_by_index[literal.variable].get_literal(
+                literal.is_positive
+            )
 
     def contains_empty_clause(self) -> bool:
         """Return whether this formula contains the empty clause."""
@@ -264,8 +265,10 @@ class Formula:
         for positive_clause in variable.positive.occurrences:
             for negative_clause in variable.negative.occurrences:
                 resolvent = self.resolve(positive_clause, negative_clause, variable)
-                if not resolvent.is_tautology():
-                    self.add_clause(resolvent)
+                # apply universal reduction
+                resolvent = self.universal_reduction(resolvent)
+
+                self.add_clause(resolvent)
 
         # Mark all clauses containing the variable as inactive
         for clause in variable.positive.occurrences | variable.negative.occurrences:

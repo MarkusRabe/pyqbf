@@ -57,8 +57,33 @@ def test_solve_another_satisfiable_formula():
         parse.QuantifierBlock([2], parse.QuantifierType.FORALL),
     ]
     puzzle = parse.QDimacs(2, [[1, 2]], quantifiers)
-    with pytest.raises(NotImplementedError):
-        result = lib.solve(puzzle)
-    # assert isinstance(result, str)
-    # # TODO: This should return "SAT" when a real solver is implemented
-    # assert result == "UNSAT"  # Current placeholder behavior
+    result = lib.solve(puzzle)
+    assert isinstance(result, str)
+    assert result == "SAT"
+
+
+def test_solve_unsatisfiable_formula():
+    """Test solving an unsatisfiable QBF formula."""
+    # This formula is unsatisfiable: ∀x∃y.(x ∨ y) ∧ (¬x ∨ ¬y) ∧ (x ∨ ¬y) ∧ (¬x ∨ y)
+    # It should return "UNSAT"
+    quantifiers = [
+        parse.QuantifierBlock([1], parse.QuantifierType.FORALL),
+        parse.QuantifierBlock([2], parse.QuantifierType.EXISTS),
+    ]
+    puzzle = parse.QDimacs(2, [[1, 2], [-1, -2], [1, -2], [-1, 2]], quantifiers)
+    result = lib.solve(puzzle)
+    assert isinstance(result, str)
+    assert result == "UNSAT"
+
+
+def test_solve_classical_unsatisfiable():
+    """Test solving an unsatisfiable classical SAT formula."""
+    # This is unsatisfiable: x AND NOT x
+    # Classical DIMACS files don't have quantifier blocks
+    file_content = """p cnf 1 2
+1 0
+-1 0"""
+
+    result = lib.solve_file(file_content)
+    assert isinstance(result, str)
+    assert result == "UNSAT"
